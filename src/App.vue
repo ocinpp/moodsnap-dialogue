@@ -636,6 +636,7 @@ const downloadImage = async () => {
     width: OPTIMAL_WIDTH,
     height: OPTIMAL_HEIGHT,
     scale: 1,
+    backgroundColor: null,
   });
   const link = document.createElement("a");
   link.download = `MoodSnap_${result.value.mood}_${Date.now()}.png`;
