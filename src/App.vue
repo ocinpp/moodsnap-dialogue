@@ -65,7 +65,8 @@
       <video
         ref="video"
         autoplay
-        class="w-96 h-72 rounded-lg shadow-lg mb-4"
+        class="w-full max-w-96 rounded-lg shadow-lg mb-4"
+        style="max-height: 600px"
       ></video>
       <button
         @click="capturePhoto"
@@ -85,7 +86,7 @@
     <div v-if="photo && !result" class="flex flex-col items-center">
       <img
         :src="photo"
-        class="max-w-96 max-h-96 rounded-lg shadow-lg mb-4 object-contain"
+        class="w-full max-w-96 rounded-lg shadow-lg mb-4 object-contain"
         alt="Captured Photo"
       />
       <button
@@ -125,7 +126,7 @@
     <div v-if="result" class="flex flex-col items-center text-center">
       <div
         ref="resultImage"
-        class="relative bg-white rounded-lg shadow-lg overflow-hidden"
+        class="relative rounded-lg shadow-lg overflow-hidden"
         :style="{
           width: `${imageWidth}px`,
           height: `${imageHeight}px`,
@@ -133,18 +134,29 @@
         }"
       >
         <img
+          v-if="photo"
           :src="photo"
-          class="w-full h-full rounded-lg object-contain"
+          class="w-full h-full object-cover"
           alt="Result"
         />
-        <div
-          class="absolute bottom-0 left-0 w-full bg-black bg-opacity-60 text-white p-4"
-        >
-          <p class="font-bold text-lg leading-tight">"{{ result.quote }}"</p>
-          <p v-if="result.translation" class="text-sm italic leading-tight">
+        <div class="absolute inset-0 flex flex-col justify-end text-white p-4">
+          <p
+            class="font-bold text-lg leading-tight px-2 py-1"
+            :style="{ backgroundColor: randomOverlayColor }"
+          >
+            "{{ result.quote }}"
+          </p>
+          <p
+            v-if="result.translation"
+            class="text-sm italic leading-tight px-2 py-2"
+            :style="{ backgroundColor: randomOverlayColor }"
+          >
             {{ result.translation }}
           </p>
-          <p class="text-xs leading-tight">
+          <p
+            class="text-sm leading-tight px-2 py-2"
+            :style="{ backgroundColor: randomBackgroundColor }"
+          >
             {{ result.movie }} - {{ result.character }}
           </p>
         </div>
@@ -182,10 +194,20 @@ const result = ref(null);
 const fileInput = ref(null);
 const isLoading = ref(false);
 const isModelLoading = ref(false);
-const imageWidth = ref(384); // Default width
-const imageHeight = ref(288); // Default height (4:3 aspect ratio)
+const imageWidth = ref(400); // Optimal width for 2:3
+const imageHeight = ref(600); // Optimal height for 2:3
 const screenWidth = ref(window.innerWidth - 32); // Account for p-4 padding
-const MAX_SIZE = 800; // Maximum dimension for output photo
+const OPTIMAL_WIDTH = 400;
+const OPTIMAL_HEIGHT = 600;
+
+// Random background and overlay colors
+const colors = ["#145DA0", "#0c2d48", "#2e8bc0", "#b1d4e0"];
+const randomBackgroundColor = `${
+  colors[Math.floor(Math.random() * colors.length)]
+}CC`; // 90% opacity
+const randomOverlayColor = `${
+  colors[Math.floor(Math.random() * colors.length)]
+}E6`; // 90% opacity
 
 // Update screenWidth on resize
 onMounted(() => {
@@ -458,28 +480,35 @@ const quotes = {
   ],
 };
 
-// Function to scale dimensions while preserving aspect ratio and fitting screen
-const scaleDimensions = (width, height, maxSize) => {
-  const screenWidthAdjusted = window.innerWidth - 32; // Account for p-4 padding
-  const screenHeightAdjusted = window.innerHeight - 100; // Account for vertical space
-  const maxWidth = Math.min(maxSize, screenWidthAdjusted);
-  const maxHeight = Math.min(maxSize, screenHeightAdjusted);
+// Function to crop and scale image to optimal dimensions (800x1200)
+const processImage = (sourceWidth, sourceHeight, drawCallback) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = OPTIMAL_WIDTH;
+  canvas.height = OPTIMAL_HEIGHT;
+  const ctx = canvas.getContext("2d");
 
-  if (width <= maxWidth && height <= maxHeight) return { width, height };
-  const aspectRatio = width / height;
-  if (width > height) {
-    const scaledWidth = Math.min(width, maxWidth);
-    return {
-      width: scaledWidth,
-      height: Math.round(scaledWidth / aspectRatio),
-    };
+  const srcAspect = sourceWidth / sourceHeight;
+  const targetAspect = OPTIMAL_WIDTH / OPTIMAL_HEIGHT;
+
+  let srcWidth, srcHeight, srcX, srcY;
+  if (srcAspect > targetAspect) {
+    srcHeight = sourceHeight;
+    srcWidth = sourceHeight * targetAspect;
+    srcX = (sourceWidth - srcWidth) / 2;
+    srcY = 0;
   } else {
-    const scaledHeight = Math.min(height, maxHeight);
-    return {
-      width: Math.round(scaledHeight * aspectRatio),
-      height: scaledHeight,
-    };
+    srcWidth = sourceWidth;
+    srcHeight = sourceWidth / targetAspect;
+    srcX = 0;
+    srcY = (sourceHeight - srcHeight) / 2;
   }
+
+  drawCallback(ctx, srcX, srcY, srcWidth, srcHeight);
+  console.log("Processed image:", {
+    width: canvas.width,
+    height: canvas.height,
+  });
+  return canvas.toDataURL("image/png");
 };
 
 // Load Face-API Models with Loading State
@@ -498,20 +527,28 @@ const startCamera = async () => {
 };
 
 const capturePhoto = () => {
-  const canvas = document.createElement("canvas");
-  const naturalWidth = video.value.videoWidth;
-  const naturalHeight = video.value.videoHeight;
-  const { width, height } = scaleDimensions(
-    naturalWidth,
-    naturalHeight,
-    MAX_SIZE
+  const sourceWidth = video.value.videoWidth;
+  const sourceHeight = video.value.videoHeight;
+  photo.value = processImage(
+    sourceWidth,
+    sourceHeight,
+    (ctx, srcX, srcY, srcWidth, srcHeight) => {
+      ctx.drawImage(
+        video.value,
+        srcX,
+        srcY,
+        srcWidth,
+        srcHeight,
+        0,
+        0,
+        OPTIMAL_WIDTH,
+        OPTIMAL_HEIGHT
+      );
+    }
   );
-  canvas.width = width;
-  canvas.height = height;
-  canvas.getContext("2d").drawImage(video.value, 0, 0, width, height);
-  photo.value = canvas.toDataURL("image/png");
-  imageWidth.value = width;
-  imageHeight.value = height;
+  console.log("Captured photo:", photo.value.slice(0, 50)); // Log start of base64 string
+  imageWidth.value = OPTIMAL_WIDTH;
+  imageHeight.value = OPTIMAL_HEIGHT;
   stopCamera();
 };
 
@@ -532,18 +569,26 @@ const uploadPhoto = (event) => {
       const img = new Image();
       img.src = e.target.result;
       img.onload = () => {
-        const { width, height } = scaleDimensions(
+        photo.value = processImage(
           img.width,
           img.height,
-          MAX_SIZE
+          (ctx, srcX, srcY, srcWidth, srcHeight) => {
+            ctx.drawImage(
+              img,
+              srcX,
+              srcY,
+              srcWidth,
+              srcHeight,
+              0,
+              0,
+              OPTIMAL_WIDTH,
+              OPTIMAL_HEIGHT
+            );
+          }
         );
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        photo.value = canvas.toDataURL("image/png");
-        imageWidth.value = width;
-        imageHeight.value = height;
+        console.log("Uploaded photo:", photo.value.slice(0, 50)); // Log start of base64 string
+        imageWidth.value = OPTIMAL_WIDTH;
+        imageHeight.value = OPTIMAL_HEIGHT;
       };
     };
     reader.readAsDataURL(file);
@@ -557,6 +602,7 @@ const analyzeMood = async () => {
   const img = new Image();
   img.src = photo.value;
   img.onload = async () => {
+    console.log("Image loaded for analysis:", img.width, img.height);
     const detections = await faceapi
       .detectSingleFace(img)
       .withFaceExpressions();
@@ -577,19 +623,24 @@ const analyzeMood = async () => {
     }
     isLoading.value = false;
   };
+  img.onerror = () => {
+    console.error("Failed to load image for analysis");
+    isLoading.value = false;
+  };
 };
 
 // Image Download
 const resultImage = ref(null);
 const downloadImage = async () => {
+  console.log("Downloading image...");
   const canvas = await html2canvas(resultImage.value, {
     width: imageWidth.value,
     height: imageHeight.value,
-    backgroundColor: null, // Preserve transparency if any
   });
   const link = document.createElement("a");
   link.download = `MoodSnap_${result.value.mood}_${Date.now()}.png`;
   link.href = canvas.toDataURL("image/png");
+  console.log("Download URL:", link.href.slice(0, 50)); // Log start of base64 string
   link.click();
 };
 
@@ -599,13 +650,16 @@ const reset = () => {
   result.value = null;
   cameraActive.value = false;
   isLoading.value = false;
-  imageWidth.value = 384; // Reset to default
-  imageHeight.value = 288; // Reset to default
+  imageWidth.value = OPTIMAL_WIDTH;
+  imageHeight.value = OPTIMAL_HEIGHT;
 };
 </script>
 
 <style>
 .font-montserrat {
   font-family: "Montserrat", sans-serif;
+}
+body > div:last-child > span + img {
+  display: inline !important;
 }
 </style>
