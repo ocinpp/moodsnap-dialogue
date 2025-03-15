@@ -34,7 +34,7 @@
     </div>
 
     <!-- Landing/State Management -->
-    <div v-if="!photo && !result" class="text-center">
+    <div v-if="!photo && !result && !cameraActive" class="text-center">
       <h1 class="text-4xl font-bold mb-4 text-gray-800">
         MoodSnap Movie Quote Generator
       </h1>
@@ -125,8 +125,12 @@
     <div v-if="result" class="flex flex-col items-center text-center">
       <div
         ref="resultImage"
-        class="relative bg-white rounded-lg shadow-lg"
-        :style="{ width: `${imageWidth}px`, height: `${imageHeight}px` }"
+        class="relative bg-white rounded-lg shadow-lg overflow-hidden"
+        :style="{
+          width: `${imageWidth}px`,
+          height: `${imageHeight}px`,
+          maxWidth: `${screenWidth}px`,
+        }"
       >
         <img
           :src="photo"
@@ -134,13 +138,15 @@
           alt="Result"
         />
         <div
-          class="absolute bottom-0 w-full bg-black bg-opacity-60 text-white p-4 rounded-b-lg"
+          class="absolute bottom-0 left-0 w-full bg-black bg-opacity-60 text-white p-4"
         >
-          <p class="font-bold text-lg">"{{ result.quote }}"</p>
-          <p v-if="result.translation" class="text-sm italic">
+          <p class="font-bold text-lg leading-tight">"{{ result.quote }}"</p>
+          <p v-if="result.translation" class="text-sm italic leading-tight">
             {{ result.translation }}
           </p>
-          <p class="text-xs">{{ result.movie }} - {{ result.character }}</p>
+          <p class="text-xs leading-tight">
+            {{ result.movie }} - {{ result.character }}
+          </p>
         </div>
       </div>
       <p class="mt-4 text-gray-700">
@@ -164,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import html2canvas from "html2canvas";
 import * as faceapi from "@vladmandic/face-api";
 
@@ -178,6 +184,15 @@ const isLoading = ref(false);
 const isModelLoading = ref(false);
 const imageWidth = ref(384); // Default width
 const imageHeight = ref(288); // Default height (4:3 aspect ratio)
+const screenWidth = ref(window.innerWidth - 32); // Account for p-4 padding
+const MAX_SIZE = 800; // Maximum dimension for output photo
+
+// Update screenWidth on resize
+onMounted(() => {
+  window.addEventListener("resize", () => {
+    screenWidth.value = window.innerWidth - 32;
+  });
+});
 
 // Merged Quote Database (English + Cantonese)
 const quotes = {
@@ -317,7 +332,7 @@ const quotes = {
     {
       quote: "你同我講，邊個夠膽同我爭！",
       romanization:
-        "Nei5 tung4 ngo5 gong2, bin1 go3 gau3 daam2 tung4 ngo5 zaang1!",
+        "Nei5 tung4 nei5 gong2, bin1 go3 gau3 daam2 tung4 ngo5 zaang1!",
       translation: "Tell me, who dares to fight me!",
       movie: "Election",
       character: "Lok",
@@ -443,6 +458,30 @@ const quotes = {
   ],
 };
 
+// Function to scale dimensions while preserving aspect ratio and fitting screen
+const scaleDimensions = (width, height, maxSize) => {
+  const screenWidthAdjusted = window.innerWidth - 32; // Account for p-4 padding
+  const screenHeightAdjusted = window.innerHeight - 100; // Account for vertical space
+  const maxWidth = Math.min(maxSize, screenWidthAdjusted);
+  const maxHeight = Math.min(maxSize, screenHeightAdjusted);
+
+  if (width <= maxWidth && height <= maxHeight) return { width, height };
+  const aspectRatio = width / height;
+  if (width > height) {
+    const scaledWidth = Math.min(width, maxWidth);
+    return {
+      width: scaledWidth,
+      height: Math.round(scaledWidth / aspectRatio),
+    };
+  } else {
+    const scaledHeight = Math.min(height, maxHeight);
+    return {
+      width: Math.round(scaledHeight * aspectRatio),
+      height: scaledHeight,
+    };
+  }
+};
+
 // Load Face-API Models with Loading State
 const loadModels = async () => {
   isModelLoading.value = true;
@@ -460,12 +499,19 @@ const startCamera = async () => {
 
 const capturePhoto = () => {
   const canvas = document.createElement("canvas");
-  canvas.width = video.value.videoWidth;
-  canvas.height = video.value.videoHeight;
-  canvas.getContext("2d").drawImage(video.value, 0, 0);
+  const naturalWidth = video.value.videoWidth;
+  const naturalHeight = video.value.videoHeight;
+  const { width, height } = scaleDimensions(
+    naturalWidth,
+    naturalHeight,
+    MAX_SIZE
+  );
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext("2d").drawImage(video.value, 0, 0, width, height);
   photo.value = canvas.toDataURL("image/png");
-  imageWidth.value = video.value.videoWidth;
-  imageHeight.value = video.value.videoHeight;
+  imageWidth.value = width;
+  imageHeight.value = height;
   stopCamera();
 };
 
@@ -483,12 +529,21 @@ const uploadPhoto = (event) => {
   if (file) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      photo.value = e.target.result;
       const img = new Image();
-      img.src = photo.value;
+      img.src = e.target.result;
       img.onload = () => {
-        imageWidth.value = img.width;
-        imageHeight.value = img.height;
+        const { width, height } = scaleDimensions(
+          img.width,
+          img.height,
+          MAX_SIZE
+        );
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        photo.value = canvas.toDataURL("image/png");
+        imageWidth.value = width;
+        imageHeight.value = height;
       };
     };
     reader.readAsDataURL(file);
@@ -530,6 +585,7 @@ const downloadImage = async () => {
   const canvas = await html2canvas(resultImage.value, {
     width: imageWidth.value,
     height: imageHeight.value,
+    backgroundColor: null, // Preserve transparency if any
   });
   const link = document.createElement("a");
   link.download = `MoodSnap_${result.value.mood}_${Date.now()}.png`;
