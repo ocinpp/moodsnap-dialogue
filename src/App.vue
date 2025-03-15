@@ -130,7 +130,6 @@
         :style="{
           width: `${imageWidth}px`,
           height: `${imageHeight}px`,
-          maxWidth: `${screenWidth}px`,
         }"
       >
         <img
@@ -480,7 +479,7 @@ const quotes = {
   ],
 };
 
-// Function to crop and scale image to optimal dimensions (800x1200)
+// Function to crop and scale image to optimal dimensions (400x600)
 const processImage = (sourceWidth, sourceHeight, drawCallback) => {
   const canvas = document.createElement("canvas");
   canvas.width = OPTIMAL_WIDTH;
@@ -634,8 +633,9 @@ const resultImage = ref(null);
 const downloadImage = async () => {
   console.log("Downloading image...");
   const canvas = await html2canvas(resultImage.value, {
-    width: imageWidth.value,
-    height: imageHeight.value,
+    width: OPTIMAL_WIDTH,
+    height: OPTIMAL_HEIGHT,
+    scale: 1,
   });
   const link = document.createElement("a");
   link.download = `MoodSnap_${result.value.mood}_${Date.now()}.png`;
