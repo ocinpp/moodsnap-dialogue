@@ -200,7 +200,7 @@ const OPTIMAL_WIDTH = 400;
 const OPTIMAL_HEIGHT = 600;
 
 // Random background and overlay colors
-const colors = ["#145DA0", "#0c2d48", "#2e8bc0", "#b1d4e0"];
+const colors = ["#CD5700", "#0066CC", "#0343DF", "#EA27C2"];
 const randomBackgroundColor = `${
   colors[Math.floor(Math.random() * colors.length)]
 }CC`; // 90% opacity
