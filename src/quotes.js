@@ -64,7 +64,7 @@ export const quotes = {
       movie: "The God of Cookery",
       movieOriginal: "食神",
       character: "Stephen Chow",
-      characterOriginal: "周星馳",
+      characterOriginal: "史提芬周",
     },
     {
       quote: "有信心就一定會贏！",
@@ -73,7 +73,7 @@ export const quotes = {
       movie: "Kung Fu Hustle",
       movieOriginal: "功夫",
       character: "Sing",
-      characterOriginal: "星",
+      characterOriginal: "阿星",
     },
     {
       quote: "今日我好開心，因為我終於做到我想做嘅嘢！",
@@ -84,7 +84,7 @@ export const quotes = {
       movie: "Fight Back to School",
       movieOriginal: "逃學威龍",
       character: "Star Chow",
-      characterOriginal: "周星",
+      characterOriginal: "周星星",
     },
     {
       quote: "笑一笑，世界更美妙！",
@@ -312,7 +312,7 @@ export const quotes = {
       movie: "Fight Back to School II",
       movieOriginal: "逃學威龍II",
       character: "Star Chow",
-      characterOriginal: "周星",
+      characterOriginal: "周星星",
     },
   ],
   surprised: [
@@ -507,8 +507,8 @@ export const quotes = {
         "To live, keep a low profile, then you won’t have so much trouble.",
       movie: "Running Out of Time",
       movieOriginal: "暗戰",
-      character: "Cheung",
-      characterOriginal: "張",
+      character: "Cheung Wah",
+      characterOriginal: "張華",
     },
     {
       quote: "凡事有因有果，唔使太執著。",
