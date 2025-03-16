@@ -138,36 +138,32 @@
           class="w-full h-full object-cover"
           alt="Result"
         />
-        <div class="absolute inset-0 flex flex-col justify-end text-white p-4">
-          <p
-            class="font-bold text-lg leading-tight px-2 py-1 m-0"
-            :style="{ backgroundColor: randomOverlayColor }"
+        <div class="absolute bottom-0 left-0 right-0 flex flex-col text-white">
+          <div
+            :style="{ backgroundColor: randomQuoteColor }"
+            class="p-4 leading-tight"
           >
-            "{{ result.quote }}"
-          </p>
-          <p
-            v-if="result.translation"
-            class="text-sm italic leading-tight px-2 py-2 m-0"
-            :style="{ backgroundColor: randomOverlayColor }"
+            <span class="font-bold text-lg">"{{ result.quote }}"</span><br />
+            <span v-if="result.translation" class="text-sm italic">{{
+              result.translation
+            }}</span>
+          </div>
+          <div
+            :style="{ backgroundColor: randomCharacterColor }"
+            class="p-2 leading-tight"
           >
-            {{ result.translation }}
-          </p>
-          <p
-            v-if="
-              result.movie !== result.movieOriginal &&
-              result.character !== result.characterOriginal
-            "
-            class="text-sm leading-tight px-2 py-1 m-0"
-            :style="{ backgroundColor: randomBackgroundColor }"
-          >
-            {{ result.movieOriginal }} - {{ result.characterOriginal }}
-          </p>
-          <p
-            class="text-sm leading-tight px-2 py-1 m-0"
-            :style="{ backgroundColor: randomBackgroundColor }"
-          >
-            {{ result.movie }} - {{ result.character }}
-          </p>
+            <span class="text-xs"
+              >{{ result.movieOriginal }} - {{ result.characterOriginal }}</span
+            >
+            <span
+              v-if="
+                result.movieOriginal != result.movie &&
+                result.characterOriginal != result.character
+              "
+              class="text-xs italic"
+              ><br />{{ result.movie }} - {{ result.character }}</span
+            >
+          </div>
         </div>
       </div>
       <p class="mt-4 text-gray-700">
@@ -212,10 +208,10 @@ const OPTIMAL_HEIGHT = 600;
 
 // Random background and overlay colors
 const colors = ["#CD5700", "#0066CC", "#0343DF", "#EA27C2"];
-const randomBackgroundColor = `${
+const randomQuoteColor = `${
   colors[Math.floor(Math.random() * colors.length)]
 }CC`; // 90% opacity
-const randomOverlayColor = `${
+const randomCharacterColor = `${
   colors[Math.floor(Math.random() * colors.length)]
 }E6`; // 90% opacity
 
