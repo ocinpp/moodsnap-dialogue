@@ -183,6 +183,13 @@
         Try Again
       </button>
     </div>
+
+    <!-- No Face Detected Modal -->
+    <NoFaceModal
+      ref="noFaceModal"
+      @retry="reset"
+      @cancel="assignNeutralQuote"
+    />
   </div>
 </template>
 
@@ -191,6 +198,7 @@ import { ref, onMounted } from "vue";
 import html2canvas from "html2canvas";
 import * as faceapi from "@vladmandic/face-api";
 import { quotes } from "./quotes";
+import NoFaceModal from "./components/NoFaceModal.vue";
 
 // State
 const photo = ref(null);
@@ -205,15 +213,18 @@ const imageHeight = ref(600); // Optimal height for 2:3
 const screenWidth = ref(window.innerWidth - 32); // Account for p-4 padding
 const OPTIMAL_WIDTH = 400;
 const OPTIMAL_HEIGHT = 600;
+const noFaceModal = ref(null); // Reference to modal
+const randomQuoteColor = ref(null);
+const randomCharacterColor = ref(null);
 
 // Random background and overlay colors
 const colors = ["#CD5700", "#0066CC", "#0343DF", "#EA27C2"];
-const randomQuoteColor = `${
-  colors[Math.floor(Math.random() * colors.length)]
-}CC`; // 90% opacity
-const randomCharacterColor = `${
-  colors[Math.floor(Math.random() * colors.length)]
-}E6`; // 90% opacity
+const getRandomDistinctColors = () => {
+  const shuffled = [...colors].sort(() => 0.5 - Math.random()); // Shuffle array
+  return [shuffled[0] + "CC", shuffled[1] + "E6"]; // Take first two distinct colors with 80% and 90% opacity
+};
+[randomQuoteColor.value, randomCharacterColor.value] =
+  getRandomDistinctColors();
 
 // Update screenWidth on resize
 onMounted(() => {
@@ -337,6 +348,15 @@ const uploadPhoto = (event) => {
   }
 };
 
+// Assign Neutral Quote
+const assignNeutralQuote = () => {
+  result.value = {
+    mood: "neutral",
+    ...quotes.neutral[Math.floor(Math.random() * quotes.neutral.length)],
+  };
+  isLoading.value = false;
+};
+
 // Mood Analysis with Face-API
 const analyzeMood = async () => {
   isLoading.value = true;
@@ -348,7 +368,10 @@ const analyzeMood = async () => {
     const detections = await faceapi
       .detectSingleFace(img)
       .withFaceExpressions();
-    if (detections) {
+    if (!detections) {
+      console.log("No face detected");
+      noFaceModal.value.open(); // Open custom modal
+    } else {
       const expressions = detections.expressions;
       const mood = Object.entries(expressions).reduce((a, b) =>
         a[1] > b[1] ? a : b
@@ -357,13 +380,8 @@ const analyzeMood = async () => {
       const randomQuote =
         moodQuotes[Math.floor(Math.random() * moodQuotes.length)];
       result.value = { mood, ...randomQuote };
-    } else {
-      result.value = {
-        mood: "neutral",
-        ...quotes.neutral[Math.floor(Math.random() * quotes.neutral.length)],
-      };
+      isLoading.value = false;
     }
-    isLoading.value = false;
   };
   img.onerror = () => {
     console.error("Failed to load image for analysis");
@@ -396,6 +414,8 @@ const reset = () => {
   isLoading.value = false;
   imageWidth.value = OPTIMAL_WIDTH;
   imageHeight.value = OPTIMAL_HEIGHT;
+  [randomQuoteColor.value, randomCharacterColor.value] =
+    getRandomDistinctColors();
 };
 </script>
 
