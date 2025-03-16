@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-montserrat"
+    class="min-h-screen bg-black flex flex-col items-center justify-center p-4 font-montserrat"
   >
     <!-- Model Loading Message -->
     <div
@@ -34,30 +34,44 @@
     </div>
 
     <!-- Landing/State Management -->
-    <div v-if="!photo && !result && !cameraActive" class="text-center">
-      <h1 class="text-4xl font-bold mb-4 text-gray-800">
-        MoodSnap Movie Quote Generator
-      </h1>
-      <p class="mb-6 text-gray-600">Capture your mood and get a movie quote!</p>
-      <button
-        @click="startCamera"
-        class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition"
+    <div v-if="!photo && !result && !cameraActive" class="text-center md:w-2/3">
+      <div
+        class="relative p-[1px] rounded-lg bg-gradient-to-r from-green-400 via-purple-500 to-blue-500 animate-gradient-x"
       >
-        Take a Photo
-      </button>
-      <input
-        type="file"
-        accept="image/*"
-        @change="uploadPhoto"
-        class="hidden"
-        ref="fileInput"
-      />
-      <button
-        @click="$refs.fileInput.click()"
-        class="bg-green-500 text-white px-6 py-3 rounded-lg shadow ml-4 hover:bg-green-600 transition"
-      >
-        Upload Photo
-      </button>
+        <div
+          className="grid bg-black rounded-lg p-4 md:p-12 h-[40dvh] content-evenly"
+        >
+          <div>
+            <h1 class="text-2xl md:text-4xl font-bold mb-4 text-white">
+              MoodSnap Movie Quote Generator
+            </h1>
+            <p class="mb-6 text-white">
+              Capture your mood and get a movie quote!
+            </p>
+          </div>
+          <div>
+            <button
+              @click="startCamera"
+              class="bg-blue-500 text-white px-4 py-3 rounded-lg shadow hover:bg-blue-600 transition"
+            >
+              Take a Photo
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              @change="uploadPhoto"
+              class="hidden"
+              ref="fileInput"
+            />
+            <button
+              @click="$refs.fileInput.click()"
+              class="bg-green-500 text-white px-6 py-3 rounded-lg shadow ml-4 hover:bg-green-600 transition"
+            >
+              Upload Photo
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Camera Preview -->
@@ -126,11 +140,8 @@
     <div v-if="result" class="flex flex-col items-center text-center">
       <div
         ref="resultImage"
+        id="resultImage"
         class="relative rounded-lg shadow-lg overflow-hidden"
-        :style="{
-          width: `${imageWidth}px`,
-          height: `${imageHeight}px`,
-        }"
       >
         <img
           v-if="photo"
@@ -166,7 +177,7 @@
           </div>
         </div>
       </div>
-      <p class="mt-4 text-gray-700">
+      <p class="mt-4 text-white">
         Mood Detected:
         <span class="font-semibold capitalize">{{ result.mood }}</span>
       </p>
@@ -196,7 +207,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import html2canvas from "html2canvas";
-import * as faceapi from "@vladmandic/face-api";
+import Human from "@vladmandic/human";
 import { quotes } from "./quotes";
 import NoFaceModal from "./components/NoFaceModal.vue";
 
@@ -228,6 +239,7 @@ const getRandomDistinctColors = () => {
 
 // Update screenWidth on resize
 onMounted(() => {
+  initHuman();
   window.addEventListener("resize", () => {
     screenWidth.value = window.innerWidth - 32;
   });
@@ -264,11 +276,25 @@ const processImage = (sourceWidth, sourceHeight, drawCallback) => {
   return canvas.toDataURL("image/png");
 };
 
-// Load Face-API Models with Loading State
-const loadModels = async () => {
+const humanConfig = {
+  backend: "webgl",
+  modelBasePath: "https://cdn.jsdelivr.net/npm/@vladmandic/human/models/",
+  face: {
+    enabled: true,
+    detector: { rotation: false },
+    emotion: { enabled: true },
+  },
+  body: { enabled: false },
+  hand: { enabled: false },
+  gesture: { enabled: false },
+};
+const human = new Human(humanConfig);
+
+// init Human
+const initHuman = async () => {
   isModelLoading.value = true;
-  await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
-  await faceapi.nets.faceExpressionNet.loadFromUri("/models");
+  await human.load();
+  console.log("Human models loaded:", human.models);
   isModelLoading.value = false;
 };
 
@@ -357,35 +383,29 @@ const assignNeutralQuote = () => {
   isLoading.value = false;
 };
 
-// Mood Analysis with Face-API
+// Mood Analysis with Human
 const analyzeMood = async () => {
   isLoading.value = true;
-  await loadModels();
   const img = new Image();
   img.src = photo.value;
   img.onload = async () => {
-    console.log("Image loaded for analysis:", img.width, img.height);
-    const detections = await faceapi
-      .detectSingleFace(img)
-      .withFaceExpressions();
-    if (!detections) {
+    const detections = await human.detect(img);
+    const face = detections.face[0];
+    if (!face) {
       console.log("No face detected");
-      noFaceModal.value.open(); // Open custom modal
+      noFaceModal.value.open();
     } else {
-      const expressions = detections.expressions;
-      const mood = Object.entries(expressions).reduce((a, b) =>
-        a[1] > b[1] ? a : b
-      )[0];
+      const expressions = face.emotion;
+      console.log("Emotions: ", expressions);
+      const mood = expressions.sort((a, b) =>
+        a.score > b.score ? a.score : b.score
+      )[0].emotion;
       const moodQuotes = quotes[mood] || quotes.neutral;
       const randomQuote =
         moodQuotes[Math.floor(Math.random() * moodQuotes.length)];
       result.value = { mood, ...randomQuote };
       isLoading.value = false;
     }
-  };
-  img.onerror = () => {
-    console.error("Failed to load image for analysis");
-    isLoading.value = false;
   };
 };
 
@@ -398,6 +418,16 @@ const downloadImage = async () => {
     height: OPTIMAL_HEIGHT,
     scale: 1,
     backgroundColor: null,
+    onclone: function (clonedDoc) {
+      // set the image to the desired width and height
+      // where the display on screen is bounded by the container
+      clonedDoc.getElementById(
+        "resultImage"
+      ).style.width = `${imageWidth.value}px`;
+      clonedDoc.getElementById(
+        "resultImage"
+      ).style.height = `${imageHeight.value}px`;
+    },
   });
   const link = document.createElement("a");
   link.download = `MoodSnap_${result.value.mood}_${Date.now()}.png`;
