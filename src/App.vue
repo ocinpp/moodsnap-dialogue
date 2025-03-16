@@ -34,30 +34,44 @@
     </div>
 
     <!-- Landing/State Management -->
-    <div v-if="!photo && !result && !cameraActive" class="text-center">
-      <h1 class="text-4xl font-bold mb-4 text-white">
-        MoodSnap Movie Quote Generator
-      </h1>
-      <p class="mb-6 text-white">Capture your mood and get a movie quote!</p>
-      <button
-        @click="startCamera"
-        class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition"
+    <div v-if="!photo && !result && !cameraActive" class="text-center md:w-2/3">
+      <div
+        class="relative p-[1px] rounded-lg bg-gradient-to-r from-green-400 via-purple-500 to-blue-500 animate-gradient-x"
       >
-        Take a Photo
-      </button>
-      <input
-        type="file"
-        accept="image/*"
-        @change="uploadPhoto"
-        class="hidden"
-        ref="fileInput"
-      />
-      <button
-        @click="$refs.fileInput.click()"
-        class="bg-green-500 text-white px-6 py-3 rounded-lg shadow ml-4 hover:bg-green-600 transition"
-      >
-        Upload Photo
-      </button>
+        <div
+          className="grid bg-black rounded-lg p-4 md:p-12 h-[50dvh] content-evenly"
+        >
+          <div>
+            <h1 class="text-2xl md:text-4xl font-bold mb-4 text-white">
+              MoodSnap Movie Quote Generator
+            </h1>
+            <p class="mb-6 text-white">
+              Capture your mood and get a movie quote!
+            </p>
+          </div>
+          <div>
+            <button
+              @click="startCamera"
+              class="bg-blue-500 text-white px-4 py-3 rounded-lg shadow hover:bg-blue-600 transition"
+            >
+              Take a Photo
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              @change="uploadPhoto"
+              class="hidden"
+              ref="fileInput"
+            />
+            <button
+              @click="$refs.fileInput.click()"
+              class="bg-green-500 text-white px-6 py-3 rounded-lg shadow ml-4 hover:bg-green-600 transition"
+            >
+              Upload Photo
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Camera Preview -->
