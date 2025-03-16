@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-montserrat"
+    class="min-h-screen bg-black flex flex-col items-center justify-center p-4 font-montserrat"
   >
     <!-- Model Loading Message -->
     <div
@@ -35,10 +35,10 @@
 
     <!-- Landing/State Management -->
     <div v-if="!photo && !result && !cameraActive" class="text-center">
-      <h1 class="text-4xl font-bold mb-4 text-gray-800">
+      <h1 class="text-4xl font-bold mb-4 text-white">
         MoodSnap Movie Quote Generator
       </h1>
-      <p class="mb-6 text-gray-600">Capture your mood and get a movie quote!</p>
+      <p class="mb-6 text-white">Capture your mood and get a movie quote!</p>
       <button
         @click="startCamera"
         class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition"
@@ -126,11 +126,8 @@
     <div v-if="result" class="flex flex-col items-center text-center">
       <div
         ref="resultImage"
+        id="resultImage"
         class="relative rounded-lg shadow-lg overflow-hidden"
-        :style="{
-          width: `${imageWidth}px`,
-          height: `${imageHeight}px`,
-        }"
       >
         <img
           v-if="photo"
@@ -166,7 +163,7 @@
           </div>
         </div>
       </div>
-      <p class="mt-4 text-gray-700">
+      <p class="mt-4 text-white">
         Mood Detected:
         <span class="font-semibold capitalize">{{ result.mood }}</span>
       </p>
@@ -407,6 +404,16 @@ const downloadImage = async () => {
     height: OPTIMAL_HEIGHT,
     scale: 1,
     backgroundColor: null,
+    onclone: function (clonedDoc) {
+      // set the image to the desired width and height
+      // where the display on screen is bounded by the container
+      clonedDoc.getElementById(
+        "resultImage"
+      ).style.width = `${imageWidth.value}px`;
+      clonedDoc.getElementById(
+        "resultImage"
+      ).style.height = `${imageHeight.value}px`;
+    },
   });
   const link = document.createElement("a");
   link.download = `MoodSnap_${result.value.mood}_${Date.now()}.png`;
