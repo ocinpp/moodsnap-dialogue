@@ -196,7 +196,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import html2canvas from "html2canvas";
-import * as faceapi from "@vladmandic/face-api";
+import Human from "@vladmandic/human";
 import { quotes } from "./quotes";
 import NoFaceModal from "./components/NoFaceModal.vue";
 
@@ -228,6 +228,7 @@ const getRandomDistinctColors = () => {
 
 // Update screenWidth on resize
 onMounted(() => {
+  initHuman();
   window.addEventListener("resize", () => {
     screenWidth.value = window.innerWidth - 32;
   });
@@ -264,11 +265,25 @@ const processImage = (sourceWidth, sourceHeight, drawCallback) => {
   return canvas.toDataURL("image/png");
 };
 
-// Load Face-API Models with Loading State
-const loadModels = async () => {
+const humanConfig = {
+  backend: "webgl",
+  modelBasePath: "https://cdn.jsdelivr.net/npm/@vladmandic/human/models/",
+  face: {
+    enabled: true,
+    detector: { rotation: false },
+    emotion: { enabled: true },
+  },
+  body: { enabled: false },
+  hand: { enabled: false },
+  gesture: { enabled: false },
+};
+const human = new Human(humanConfig);
+
+// init Human
+const initHuman = async () => {
   isModelLoading.value = true;
-  await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
-  await faceapi.nets.faceExpressionNet.loadFromUri("/models");
+  await human.load();
+  console.log("Human models loaded:", human.models);
   isModelLoading.value = false;
 };
 
@@ -357,35 +372,29 @@ const assignNeutralQuote = () => {
   isLoading.value = false;
 };
 
-// Mood Analysis with Face-API
+// Mood Analysis with Human
 const analyzeMood = async () => {
   isLoading.value = true;
-  await loadModels();
   const img = new Image();
   img.src = photo.value;
   img.onload = async () => {
-    console.log("Image loaded for analysis:", img.width, img.height);
-    const detections = await faceapi
-      .detectSingleFace(img)
-      .withFaceExpressions();
-    if (!detections) {
+    const detections = await human.detect(img);
+    const face = detections.face[0];
+    if (!face) {
       console.log("No face detected");
-      noFaceModal.value.open(); // Open custom modal
+      noFaceModal.value.open();
     } else {
-      const expressions = detections.expressions;
-      const mood = Object.entries(expressions).reduce((a, b) =>
-        a[1] > b[1] ? a : b
-      )[0];
+      const expressions = face.emotion;
+      console.log("Emotions: ", expressions);
+      const mood = expressions.sort((a, b) =>
+        a.score > b.score ? a.score : b.score
+      )[0].emotion;
       const moodQuotes = quotes[mood] || quotes.neutral;
       const randomQuote =
         moodQuotes[Math.floor(Math.random() * moodQuotes.length)];
       result.value = { mood, ...randomQuote };
       isLoading.value = false;
     }
-  };
-  img.onerror = () => {
-    console.error("Failed to load image for analysis");
-    isLoading.value = false;
   };
 };
 
