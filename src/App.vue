@@ -39,7 +39,7 @@
         class="relative p-[1px] rounded-lg bg-gradient-to-r from-green-400 via-purple-500 to-blue-500 animate-gradient-x"
       >
         <div
-          className="grid bg-black rounded-lg p-4 md:p-12 h-[50dvh] content-evenly"
+          className="grid bg-black rounded-lg p-4 md:p-12 h-[40dvh] content-evenly"
         >
           <div>
             <h1 class="text-2xl md:text-4xl font-bold mb-4 text-white">
