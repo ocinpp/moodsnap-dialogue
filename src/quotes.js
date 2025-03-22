@@ -83,7 +83,7 @@ export const quotes = {
         "Today I’m so happy because I finally did what I wanted to do!",
       movie: "Fight Back to School",
       movieOriginal: "逃學威龍",
-      character: "Star Chow",
+      character: "Chow Sing-sing",
       characterOriginal: "周星星",
     },
     {
@@ -102,7 +102,7 @@ export const quotes = {
       translation: "What’s there to be unhappy about in life? Just smile!",
       movie: "King of Comedy",
       movieOriginal: "喜劇之王",
-      character: "Yin Tin Sau",
+      character: "Wan Tin Sau",
       characterOriginal: "尹天仇",
     },
   ],
@@ -256,7 +256,7 @@ export const quotes = {
     },
     // Cantonese Quotes
     {
-      quote: "出嚟行，遲早要還！",
+      quote: "出嚟行，預咗要還！",
       romanization: "Ceot1 lei4 haang4, ci4 zou2 jiu3 waan4!",
       translation:
         "If you step into this world, sooner or later you’ll have to pay it back!",
@@ -311,7 +311,7 @@ export const quotes = {
       translation: "Say one more word, and I’ll turn on you right now!",
       movie: "Fight Back to School II",
       movieOriginal: "逃學威龍II",
-      character: "Star Chow",
+      character: "Chow Sing-sing",
       characterOriginal: "周星星",
     },
   ],
