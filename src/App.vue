@@ -154,16 +154,21 @@
             :style="{ backgroundColor: randomQuoteColor }"
             class="p-4 leading-tight"
           >
-            <span class="font-bold text-lg">"{{ result.quote }}"</span><br />
-            <span v-if="result.translation" class="text-sm italic">{{
-              result.translation
-            }}</span>
+            <span class="font-bold text-xl" :class="getFontClass(result, false)"
+              >"{{ result.quote }}"</span
+            ><br />
+            <span
+              v-if="result.translation"
+              class="text-lg italic"
+              :class="getFontClass(result, true)"
+              >{{ result.translation }}</span
+            >
           </div>
           <div
             :style="{ backgroundColor: randomCharacterColor }"
             class="p-2 leading-tight"
           >
-            <span class="text-xs"
+            <span class="text-sm" :class="getFontClass(result, false)"
               >{{ result.movieOriginal }} - {{ result.characterOriginal }}</span
             >
             <span
@@ -171,7 +176,8 @@
                 result.movieOriginal != result.movie &&
                 result.characterOriginal != result.character
               "
-              class="text-xs italic"
+              class="text-sm italic"
+              :class="getFontClass(result, true)"
               ><br />{{ result.movie }} - {{ result.character }}</span
             >
           </div>
@@ -237,6 +243,66 @@ const getRandomDistinctColors = () => {
 [randomQuoteColor.value, randomCharacterColor.value] =
   getRandomDistinctColors();
 
+// Font class based on mood and language
+const getFontClass = (result, isForceEnglish) => {
+  const isCantonese =
+    (result.romanization || result.translation) && !isForceEnglish; // Check if quote is Cantonese
+  const mood = result.mood;
+  if (isCantonese) {
+    switch (mood) {
+      case "happy":
+        return "font-noto-sans-tc-medium";
+      case "sad":
+        return "font-noto-serif-tc-light";
+      case "angry":
+        return "font-BIZ-UDPGothic";
+      case "surprised":
+        return "font-zcool-kuaile";
+      case "neutral":
+        return "font-noto-serif-hk-regular";
+      default:
+        return "font-montserrat"; // Fallback
+    }
+  } else {
+    switch (mood) {
+      case "happy":
+        return "font-lobster";
+      case "sad":
+        return "font-shadow-into-light-two";
+      case "angry":
+        return "font-impact";
+      case "surprised":
+        return "font-bangers";
+      case "neutral":
+        return "font-roboto";
+      default:
+        return "font-montserrat"; // Fallback
+    }
+  }
+};
+
+const humanConfig = {
+  backend: "webgl",
+  modelBasePath: "https://cdn.jsdelivr.net/npm/@vladmandic/human/models/",
+  face: {
+    enabled: true,
+    detector: { rotation: false },
+    emotion: { enabled: true },
+  },
+  body: { enabled: false },
+  hand: { enabled: false },
+  gesture: { enabled: false },
+};
+const human = new Human(humanConfig);
+
+// init Human
+const initHuman = async () => {
+  isModelLoading.value = true;
+  await human.load();
+  console.log("Human models loaded:", human.models);
+  isModelLoading.value = false;
+};
+
 // Update screenWidth on resize
 onMounted(() => {
   initHuman();
@@ -274,28 +340,6 @@ const processImage = (sourceWidth, sourceHeight, drawCallback) => {
     height: canvas.height,
   });
   return canvas.toDataURL("image/png");
-};
-
-const humanConfig = {
-  backend: "webgl",
-  modelBasePath: "https://cdn.jsdelivr.net/npm/@vladmandic/human/models/",
-  face: {
-    enabled: true,
-    detector: { rotation: false },
-    emotion: { enabled: true },
-  },
-  body: { enabled: false },
-  hand: { enabled: false },
-  gesture: { enabled: false },
-};
-const human = new Human(humanConfig);
-
-// init Human
-const initHuman = async () => {
-  isModelLoading.value = true;
-  await human.load();
-  console.log("Human models loaded:", human.models);
-  isModelLoading.value = false;
 };
 
 // Camera Functions
@@ -452,6 +496,42 @@ const reset = () => {
 <style>
 .font-montserrat {
   font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+}
+/* English Fonts */
+.font-lobster {
+  font-family: "Lobster", cursive;
+}
+.font-shadow-into-light-two {
+  font-family: "Shadows Into Light Two", cursive;
+}
+.font-impact {
+  font-family: "Impact", sans-serif;
+}
+.font-bangers {
+  font-family: "Bangers", cursive;
+}
+.font-roboto {
+  font-family: "Roboto", sans-serif;
+}
+/* Traditional Chinese Fonts */
+.font-noto-sans-tc-medium {
+  font-family: "Noto Sans TC", sans-serif;
+  font-weight: 500;
+}
+.font-noto-serif-tc-light {
+  font-family: "Noto Serif TC", serif;
+  font-weight: 300;
+}
+.font-BIZ-UDPGothic {
+  font-family: "BIZ UDPGothic", serif;
+}
+.font-zcool-kuaile {
+  font-family: "ZCOOL KuaiLe", cursive;
+}
+.font-noto-serif-hk-mdeium {
+  font-family: "Noto Serif HK", sans-serif;
+  font-weight: 500;
 }
 
 /* from https://github.com/niklasvh/html2canvas/issues/2829 */
