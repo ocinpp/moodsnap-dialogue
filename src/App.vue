@@ -161,7 +161,7 @@
               v-if="result.translation"
               class="text-lg italic"
               :class="getFontClass(result, true)"
-              >{{ result.translation }}</span
+              >"{{ result.translation }}"</span
             >
           </div>
           <div
