@@ -268,7 +268,7 @@ const getFontClass = (result, isForceEnglish) => {
       case "happy":
         return "font-lobster";
       case "sad":
-        return "font-shadow-into-light-two";
+        return "font-baumans";
       case "angry":
         return "font-impact";
       case "surprised":
@@ -502,8 +502,8 @@ const reset = () => {
 .font-lobster {
   font-family: "Lobster", cursive;
 }
-.font-shadow-into-light-two {
-  font-family: "Shadows Into Light Two", cursive;
+.font-baumans {
+  font-family: "Baumans", system-ui;
 }
 .font-impact {
   font-family: "Impact", sans-serif;
