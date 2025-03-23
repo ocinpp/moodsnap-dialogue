@@ -2,6 +2,21 @@ export const quotes = {
   happy: [
     // English Quotes
     {
+      quote:
+        "There’s some good in this world, Mr. Frodo, and it’s worth fighting for.",
+      movie: "The Lord of the Rings: The Two Towers",
+      movieOriginal: "The Lord of the Rings: The Two Towers",
+      character: "Samwise Gamgee",
+      characterOriginal: "Samwise Gamgee",
+    },
+    {
+      quote: "You mustn’t be afraid to dream a little bigger, darling.",
+      movie: "Inception",
+      movieOriginal: "Inception",
+      character: "Eames",
+      characterOriginal: "Eames",
+    },
+    {
       quote: "Here's looking at you, kid.",
       movie: "Casablanca",
       movieOriginal: "Casablanca",
@@ -109,6 +124,21 @@ export const quotes = {
   sad: [
     // English Quotes
     {
+      quote:
+        "I wish the Ring had never come to me. I wish none of this had happened.",
+      movie: "The Lord of the Rings: The Fellowship of the Ring",
+      movieOriginal: "The Lord of the Rings: The Fellowship of the Ring",
+      character: "Frodo Baggins",
+      characterOriginal: "Frodo Baggins",
+    },
+    {
+      quote: "We’re not meant to save the world. We’re meant to leave it.",
+      movie: "Interstellar",
+      movieOriginal: "Interstellar",
+      character: "Cooper",
+      characterOriginal: "Cooper",
+    },
+    {
       quote: "I'm king of the world!",
       movie: "Titanic",
       movieOriginal: "Titanic",
@@ -212,6 +242,21 @@ export const quotes = {
   ],
   angry: [
     // English Quotes
+    {
+      quote: "You shall not pass!",
+      movie: "The Lord of the Rings: The Fellowship of the Ring",
+      movieOriginal: "The Lord of the Rings: The Fellowship of the Ring",
+      character: "Gandalf",
+      characterOriginal: "Gandalf",
+    },
+    {
+      quote:
+        "You either die a hero, or you live long enough to see yourself become the villain.",
+      movie: "The Dark Knight",
+      movieOriginal: "The Dark Knight",
+      character: "Harvey Dent",
+      characterOriginal: "Harvey Dent",
+    },
     {
       quote: "You talking to me?",
       movie: "Taxi Driver",
@@ -318,6 +363,13 @@ export const quotes = {
   surprised: [
     // English Quotes
     {
+      quote: "How did we end up here?",
+      movie: "Inception",
+      movieOriginal: "Inception",
+      character: "Cobb",
+      characterOriginal: "Cobb",
+    },
+    {
       quote: "I see dead people.",
       movie: "The Sixth Sense",
       movieOriginal: "The Sixth Sense",
@@ -417,6 +469,21 @@ export const quotes = {
   ],
   neutral: [
     // English Quotes
+    {
+      quote:
+        "All we have to decide is what to do with the time that is given to us.",
+      movie: "The Lord of the Rings: The Fellowship of the Ring",
+      movieOriginal: "The Lord of the Rings: The Fellowship of the Ring",
+      character: "Gandalf",
+      characterOriginal: "Gandalf",
+    },
+    {
+      quote: "Mankind was born on Earth. It was never meant to die here.",
+      movie: "Interstellar",
+      movieOriginal: "Interstellar",
+      character: "Cooper",
+      characterOriginal: "Cooper",
+    },
     {
       quote: "Houston, we have a problem.",
       movie: "Apollo 13",
